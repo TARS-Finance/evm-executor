@@ -966,6 +966,7 @@ checksum = "a23eb6b1614318a8071c9b2521f36b424b2c83db5eb3a0fead4a6c0809af6e61"
 [[package]]
 name = "api"
 version = "0.1.0"
+source = "git+https://github.com/TARS-Finance/Tars-rs?rev=daf9faebd86a152c30506eb3484814201af72312#daf9faebd86a152c30506eb3484814201af72312"
 dependencies = [
  "axum 0.7.9",
  "eyre",
@@ -1764,6 +1765,7 @@ checksum = "5e764a1d40d510daf35e07be9eb06e75770908c27d411ee6c92109c9840eaaf7"
 [[package]]
 name = "bitcoin"
 version = "0.1.0"
+source = "git+https://github.com/TARS-Finance/Tars-rs?rev=daf9faebd86a152c30506eb3484814201af72312#daf9faebd86a152c30506eb3484814201af72312"
 dependencies = [
  "alloy",
  "async-trait",
@@ -2628,6 +2630,7 @@ dependencies = [
 [[package]]
 name = "evm"
 version = "0.1.0"
+source = "git+https://github.com/TARS-Finance/Tars-rs?rev=daf9faebd86a152c30506eb3484814201af72312#daf9faebd86a152c30506eb3484814201af72312"
 dependencies = [
  "alloy",
  "alloy-primitives 0.8.25",
@@ -2730,6 +2733,7 @@ dependencies = [
 [[package]]
 name = "fiat"
 version = "0.1.0"
+source = "git+https://github.com/TARS-Finance/Tars-rs?rev=daf9faebd86a152c30506eb3484814201af72312#daf9faebd86a152c30506eb3484814201af72312"
 dependencies = [
  "api",
  "eyre",
@@ -4213,6 +4217,7 @@ dependencies = [
 [[package]]
 name = "orderbook"
 version = "0.1.0"
+source = "git+https://github.com/TARS-Finance/Tars-rs?rev=daf9faebd86a152c30506eb3484814201af72312#daf9faebd86a152c30506eb3484814201af72312"
 dependencies = [
  "alloy",
  "alloy-primitives 0.8.25",
@@ -4571,6 +4576,7 @@ dependencies = [
 [[package]]
 name = "primitives"
 version = "0.1.0"
+source = "git+https://github.com/TARS-Finance/Tars-rs?rev=daf9faebd86a152c30506eb3484814201af72312#daf9faebd86a152c30506eb3484814201af72312"
 dependencies = [
  "alloy",
  "api",
@@ -6005,6 +6011,7 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 [[package]]
 name = "tars"
 version = "0.1.0"
+source = "git+https://github.com/TARS-Finance/Tars-rs?rev=daf9faebd86a152c30506eb3484814201af72312#daf9faebd86a152c30506eb3484814201af72312"
 dependencies = [
  "api",
  "evm",
@@ -6659,6 +6666,7 @@ checksum = "b6c140620e7ffbb22c2dee59cafe6084a59b5ffc27a8859a5f0d494b5d52b6be"
 [[package]]
 name = "utils"
 version = "0.1.0"
+source = "git+https://github.com/TARS-Finance/Tars-rs?rev=daf9faebd86a152c30506eb3484814201af72312#daf9faebd86a152c30506eb3484814201af72312"
 dependencies = [
  "aes-gcm",
  "alloy",
