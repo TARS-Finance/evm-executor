@@ -13,9 +13,9 @@ use moka::future::Cache;
 use std::{str::FromStr, sync::Arc};
 use tars::{
     evm::{
-        executor::GardenActionExecutor,
+        executor::UnipayActionExecutor,
         primitives::{
-            AlloyProvider, GardenActionRequest, GardenActionType, SimulationResult, TxOptions,
+            AlloyProvider, UnipayActionRequest, UnipayActionType, SimulationResult, TxOptions,
         },
         tx_handler::PendingTxHandler,
     },
@@ -37,11 +37,11 @@ pub struct Executor {
     polling_interval: u64,
     orders_provider: PendingOrdersProvider,
     order_mapper: OrderMapper,
-    actions_executor: GardenActionExecutor,
+    actions_executor: UnipayActionExecutor,
     provider: AlloyProvider,
     settings: ChainSettings,
     cache: Arc<Cache<String, bool>>,
-    pending_tx_handler: PendingTxHandler<GardenActionRequest, GardenActionExecutor>,
+    pending_tx_handler: PendingTxHandler<UnipayActionRequest, UnipayActionExecutor>,
     signer_addr: String,
 }
 
@@ -71,7 +71,7 @@ impl Executor {
         loop {
             let pending_orders = match self
                 .orders_provider
-                .get_pending_orders(&self.settings.chain_identifier, &self.signer_addr)
+                .get_pending_orders(&self.settings.chain_identifier)
                 .await
             {
                 Ok(orders) => orders,
@@ -168,7 +168,7 @@ impl Executor {
         &self,
         pending_orders: Vec<MatchedOrderVerbose>,
         block_numbers: Option<&BlockNumbers>,
-    ) -> Vec<GardenActionRequest> {
+    ) -> Vec<UnipayActionRequest> {
         let mut requests = Vec::with_capacity(pending_orders.len());
 
         for order in pending_orders {
@@ -225,9 +225,9 @@ impl Executor {
                         }
                     };
 
-                    requests.push(GardenActionRequest {
+                    requests.push(UnipayActionRequest {
                         id: order_id.to_string(),
-                        action: GardenActionType::HTLC(action_info.action),
+                        action: UnipayActionType::HTLC(action_info.action),
                         swap: evm_swap,
                         asset: swap.asset.clone(),
                     });
@@ -244,12 +244,12 @@ impl Executor {
     /// * `requests` - The HTLC requests to dry run
     ///
     /// # Returns
-    /// * `Option<Vec<GardenActionRequest>>` - A vector containing the valid requests.
+    /// * `Option<Vec<UnipayActionRequest>>` - A vector containing the valid requests.
     ///   Returns `None` if there are no valid requests or if the dry run fails.
     async fn dry_run_and_filter(
         &self,
-        requests: Vec<GardenActionRequest>,
-    ) -> Option<Vec<GardenActionRequest>> {
+        requests: Vec<UnipayActionRequest>,
+    ) -> Option<Vec<UnipayActionRequest>> {
         let chain_identifier = self.settings.chain_identifier.clone();
         let results = match self.actions_executor.actions_dry_run(&requests).await {
             Ok(r) => r,
@@ -294,7 +294,7 @@ impl Executor {
     /// * `action` - The action to be performed on the HTLC
     ///
     #[inline]
-    fn get_cache_key(chain_identifier: &str, order_id: &str, action: &GardenActionType) -> String {
+    fn get_cache_key(chain_identifier: &str, order_id: &str, action: &UnipayActionType) -> String {
         format!("{}-{}-{}", chain_identifier, order_id, action)
     }
 
@@ -305,7 +305,7 @@ impl Executor {
     ///
     /// # Returns
     /// * `Result<()>` - Ok(()) if submission was successful, Err otherwise
-    async fn submit_requests(&mut self, requests: &[GardenActionRequest]) -> Result<()> {
+    async fn submit_requests(&mut self, requests: &[UnipayActionRequest]) -> Result<()> {
         let tx_hash = self.submi_transaction(requests).await?;
         match self.pending_tx_handler.handle_tx(tx_hash, requests).await {
             Ok(tx_hash) => {
@@ -322,7 +322,7 @@ impl Executor {
     /// Submits the initial multicall transaction
     async fn submi_transaction(
         &mut self,
-        requests: &[GardenActionRequest],
+        requests: &[UnipayActionRequest],
     ) -> Result<FixedBytes<32>> {
         let addr =
             Address::from_str(&self.signer_addr).map_err(|_| eyre::eyre!("invalid signer addr"))?;
@@ -375,7 +375,7 @@ impl Executor {
     /// * `valid_requests` - The requests to update the cache with
     ///
     #[inline]
-    async fn update_cache(&self, valid_requests: &[GardenActionRequest]) {
+    async fn update_cache(&self, valid_requests: &[UnipayActionRequest]) {
         for request in valid_requests {
             let key = Self::get_cache_key(
                 &self.settings.chain_identifier,
@@ -395,8 +395,8 @@ impl Executor {
     /// * `Vec<HTLCRequest>` - The filtered requests
     async fn filter_cached_requests(
         &self,
-        requests: Vec<GardenActionRequest>,
-    ) -> Vec<GardenActionRequest> {
+        requests: Vec<UnipayActionRequest>,
+    ) -> Vec<UnipayActionRequest> {
         let input_count = requests.len();
         let mut filtered = Vec::with_capacity(input_count);
 
@@ -441,8 +441,8 @@ mod tests {
     use tars::{
         api::primitives::{Response, Status},
         evm::{
-            Multicall3::Multicall3Instance, executor::GardenActionExecutor,
-            primitives::GardenActionType, test_utils as evm_test_utils,
+            Multicall3::Multicall3Instance, executor::UnipayActionExecutor,
+            primitives::UnipayActionType, test_utils as evm_test_utils,
             tx_handler::PendingTxHandler,
         },
         fiat::{FiatPriceResult, FiatProvider},
@@ -507,7 +507,7 @@ mod tests {
         let multicall_address = Address::from_hex(MULTICALL_ADDRESS).unwrap();
         let multicall_contract =
             Arc::new(Multicall3Instance::new(multicall_address, provider.clone()));
-        let actions_executor = GardenActionExecutor::new(multicall_contract, HashMap::new());
+        let actions_executor = UnipayActionExecutor::new(multicall_contract, HashMap::new());
 
         let orders_provider = PendingOrdersProvider::new(Url::parse(ORDER_PROVIDER_URL).unwrap());
 
@@ -600,7 +600,7 @@ mod tests {
         assert_eq!(requests[0].asset, ASSET);
         assert_eq!(
             requests[0].action,
-            GardenActionType::HTLC(HTLCAction::Initiate)
+            UnipayActionType::HTLC(HTLCAction::Initiate)
         );
     }
 

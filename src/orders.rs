@@ -39,22 +39,16 @@ impl PendingOrdersProvider {
     ///
     /// # Arguments
     /// * `chain` - The chain to get pending orders for
-    /// * `solver_id` - The solver ID to get pending orders for
     ///
     /// # Returns
     /// * `Result<Vec<MatchedOrderVerbose>>` - The pending orders
     ///
-    pub async fn get_pending_orders(
-        &self,
-        chain: &str,
-        solver_id: &str,
-    ) -> Result<Vec<MatchedOrderVerbose>> {
+    pub async fn get_pending_orders(&self, chain: &str) -> Result<Vec<MatchedOrderVerbose>> {
         let url = self.url.join(chain)?;
         let response = self
             .client
             .get(url)
             .timeout(Duration::from_secs(REQUEST_TIMEOUT))
-            .query(&[("solver", solver_id)])
             .send()
             .await?;
 
@@ -112,7 +106,7 @@ mod tests {
         let uri = setup_server().await;
         let provider = PendingOrdersProvider::new(reqwest::Url::parse(&uri).unwrap());
         let orders = provider
-            .get_pending_orders("ethereum", "0x29f72597ca8a21F9D925AE9527ec5639bAFD5075")
+            .get_pending_orders("ethereum")
             .await
             .unwrap();
         assert_eq!(orders.len(), 1);

@@ -14,8 +14,8 @@ use settings::ChainSettings;
 use std::{collections::HashMap, sync::Arc, time::Duration};
 use tars::{
     evm::{
-        Multicall3::Multicall3Instance, executor::GardenActionExecutor, htlc::GardenHTLC,
-        primitives::GardenHandlerType, traits::GardenActionHandler, tx_handler::PendingTxHandler,
+        Multicall3::Multicall3Instance, executor::UnipayActionExecutor, htlc::UnipayHTLC,
+        primitives::UnipayHandlerType, traits::UnipayActionHandler, tx_handler::PendingTxHandler,
     },
     fiat::FiatProvider,
     orderbook::OrderMapper,
@@ -245,16 +245,16 @@ async fn create_executor_for_chain(
 
     let multicall_contract = Arc::new(Multicall3Instance::new(multicall_address, provider.clone()));
 
-    // Create Garden HTLC instance
-    let garden_htlc = GardenHTLC::new(signer.clone(), provider.clone());
+    // Create Unipay HTLC instance
+    let garden_htlc = UnipayHTLC::new(signer.clone(), provider.clone());
 
-    let action_handlers: HashMap<GardenHandlerType, Arc<dyn GardenActionHandler>> =
+    let action_handlers: HashMap<UnipayHandlerType, Arc<dyn UnipayActionHandler>> =
         HashMap::from([(
-            GardenHandlerType::HTLC,
-            Arc::new(garden_htlc.clone()) as Arc<dyn GardenActionHandler>,
+            UnipayHandlerType::HTLC,
+            Arc::new(garden_htlc.clone()) as Arc<dyn UnipayActionHandler>,
         )]);
 
-    let action_executor = GardenActionExecutor::new(multicall_contract, action_handlers);
+    let action_executor = UnipayActionExecutor::new(multicall_contract, action_handlers);
 
     let pending_tx_handler = PendingTxHandler::new(
         Duration::from_millis(config.transaction_timeout),
@@ -270,7 +270,7 @@ async fn create_executor_for_chain(
         .actions_executor(action_executor)
         .provider(provider)
         .pending_tx_handler(pending_tx_handler)
-        .signer_addr(signer.address().to_string())
+        .signer_addr(signer.address().to_string().to_lowercase())
         .settings(config)
         .cache(cache)
         .build())
